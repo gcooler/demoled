@@ -1,114 +1,25 @@
+#include "handler.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
-#include <map>
 #include <netinet/in.h>
 #include <sstream>
-#include <stdlib.h>
-#include <string>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <vector>
 
 #define SERVER_PORT 9999
 
-std::string led_state = "off";
-std::string led_color = "red";
-double      led_rate  = 0.8;
-
-typedef bool command_handler(std::vector<std::string>& args, std::string& out);
-
-struct commmand_descriptor
-{
-    const char *name;
-    command_handler *handler;
-};
-
-bool handle_set_state(std::vector<std::string>& args, std::string& out)
-{
-    if (args.size() != 1) return false;
-    
-    std::string &state = args[0];
-    if (state != "on" && state != "off") return false;
-
-    led_state = state;
-    return true;
-}
-
-bool handle_get_state(std::vector<std::string>& args, std::string& out)
-{
-    if (!args.empty()) return false;
-    out = led_state;
-    return true;
-}
-
-bool handle_set_color(std::vector<std::string>& args, std::string& out)
-{
-    if (args.size() != 1) return false;
-
-    std::string &color = args[0];
-    if (color != "red" && color != "green" && color != "blue") return false;
-
-    led_color = color;
-    return true;
-}
-
-bool handle_get_color(std::vector<std::string>& args, std::string& out)
-{
-    if (!args.empty()) return false;
-    out = led_color;
-    return true;
-}
-
-bool handle_set_rate(std::vector<std::string>& args, std::string& out)
-{
-    if (args.size() != 1) return false;
-    
-    double rate = atof(args[0].c_str());
-    if (rate < 0 || rate > 5) return false;
-
-    led_rate = rate;
-    return true;
-}
-
-bool handle_get_rate(std::vector<std::string>& args, std::string& out)
-{
-    if (!args.empty()) return false;
-
-    std::stringstream ss;
-    ss << led_rate;
-
-    out = ss.str();;
-    return true;
-}
-
 bool process_command(const std::string& cmd, std::vector<std::string>& args, std::string& out)
 {
-    commmand_descriptor cmds[] =
-    {
-        { "set-led-state", handle_set_state },
-        { "get-led-state", handle_get_state },
-        { "set-led-color", handle_set_color },
-        { "get-led-color", handle_get_color },
-        { "set-led-rate",  handle_set_rate  },
-        { "get-led-rate",  handle_get_rate  },
-    };
-
-    std::map<std::string, command_handler *> handlers;
-    for (size_t i = 0; i < sizeof(cmds) / sizeof(*cmds); i++)
-    {
-        handlers.insert(std::make_pair(cmds[i].name, cmds[i].handler));
-    }
-
-    std::map<std::string, command_handler *>::const_iterator it = handlers.find(cmd);
-    return it != handlers.end() && it->second(args, out);
+    command_handler *handler = get_handler(cmd);
+    if (!handler) return false;
+    return handler(args, out);
 }
 
 void process_request(int fd)
 {
-    std::cout << fd << ": New connection accepted" << std::endl;
-
     std::string req;
     for (;;)
     {
@@ -129,19 +40,19 @@ void process_request(int fd)
     std::vector<std::string> args;
     while (ss >> buf) args.push_back(buf);
 
-    buf.clear();
-    if (process_command(cmd, args, buf))
+    std::string out;
+    if (process_command(cmd, args, out))
     {
-        if (!buf.empty()) buf = " " + buf;
-        buf = "OK" + buf;
+        if (!out.empty()) out = " " + out;
+        out = "OK" + out;
     }
     else
     {
-        buf = "FAILED";
+        out = "FAILED";
     }
-    buf += "\n";
+    out += "\n";
 
-    if (send(fd, buf.data(), buf.size(), 0) != (int)buf.size())
+    if (send(fd, out.data(), out.size(), 0) != (int)out.size())
     {
         std::cerr << "Failed to send data, error code: " << errno << std::endl;
     }

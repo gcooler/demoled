@@ -11,7 +11,7 @@ CLIENT_HDR :=  $(wildcard client/*.h)
 SERVER_SRC :=  $(wildcard server/*.cpp)
 SERVER_HDR :=  $(wildcard server/*.h)
 
-CXXFLAGS := -Wall  
+CXXFLAGS := -Wall -std=c++0x
 LDFLAGS  :=  
 
 .PHONY: all client server clean

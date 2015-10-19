@@ -58,18 +58,18 @@ bool handle_exit(std::vector<std::string> &args)
     return false;
 }
 
-typedef bool command_handler(std::vector<std::string> &args);
-const std::map<std::string, command_handler *> handlers =
-{
-    { "help",  handle_help  },
-    { "state", handle_state },
-    { "color", handle_color },
-    { "rate",  handle_rate  },
-    { "exit",  handle_exit  },
-};
-
 bool process_command(const std::string &cmd, std::vector<std::string> &args)
 {
+	typedef bool command_handler(std::vector<std::string> &args);
+	static std::map<std::string, command_handler *> handlers =
+	{
+		{ "help",  handle_help  },
+		{ "state", handle_state },
+		{ "color", handle_color },
+		{ "rate",  handle_rate  },
+		{ "exit",  handle_exit  },
+	};
+	
     std::map<std::string, command_handler *>::const_iterator it = handlers.find(cmd);
     if (it == handlers.end())
     {

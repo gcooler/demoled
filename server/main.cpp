@@ -11,7 +11,7 @@
 
 #define SERVER_PORT 9999
 
-bool process_command(const std::string& cmd, std::vector<std::string>& args, std::string& out)
+bool process_command(const std::string &cmd, std::vector<std::string> &args, std::string &out)
 {
     command_handler *handler = get_handler(cmd);
     if (!handler) return false;

@@ -36,7 +36,7 @@ bool send_request(const std::string &req, std::string &resp)
         return false;
     }
 
-    if (connect(fd, (sockaddr*)&addr, sizeof(addr)) < 0)
+    if (connect(fd, (sockaddr *)&addr, sizeof(addr)) < 0)
     {
         std::cerr << "Failed to connect to server, error code: " << errno << std::endl;
         return false;

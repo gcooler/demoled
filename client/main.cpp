@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-bool handle_help(std::vector<std::string>& args)
+bool handle_help(std::vector<std::string> &args)
 {
     std::cout << "Available commmands:\n"
         "\thelp\t\t\tShow this help\n"
@@ -18,7 +18,7 @@ bool handle_help(std::vector<std::string>& args)
     return true;
 }
 
-bool common_handler(const std::string &type, std::vector<std::string>& args)
+bool common_handler(const std::string &type, std::vector<std::string> &args)
 {
     std::string out;
     if (args.empty())
@@ -38,27 +38,27 @@ bool common_handler(const std::string &type, std::vector<std::string>& args)
     return true;
 }
 
-bool handle_state(std::vector<std::string>& args)
+bool handle_state(std::vector<std::string> &args)
 {
     return common_handler("state", args);
 }
 
-bool handle_color(std::vector<std::string>& args)
+bool handle_color(std::vector<std::string> &args)
 {
     return common_handler("color", args);
 }
 
-bool handle_rate(std::vector<std::string>& args)
+bool handle_rate(std::vector<std::string> &args)
 {
     return common_handler("rate", args);
 }
 
-bool handle_exit(std::vector<std::string>& args)
+bool handle_exit(std::vector<std::string> &args)
 {
     return false;
 }
 
-typedef bool command_handler(std::vector<std::string>& args);
+typedef bool command_handler(std::vector<std::string> &args);
 const std::map<std::string, command_handler *> handlers =
 {
     { "help",  handle_help  },
@@ -68,7 +68,7 @@ const std::map<std::string, command_handler *> handlers =
     { "exit",  handle_exit  },
 };
 
-bool process_command(const std::string& cmd, std::vector<std::string>& args)
+bool process_command(const std::string &cmd, std::vector<std::string> &args)
 {
     std::map<std::string, command_handler *>::const_iterator it = handlers.find(cmd);
     if (it == handlers.end())

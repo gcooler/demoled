@@ -5,7 +5,7 @@
 #include <sstream>
 #include <stdlib.h>
 
-bool handle_set_state(std::vector<std::string>& args, std::string& out)
+bool handle_set_state(std::vector<std::string> &args, std::string &out)
 {
     if (args.size() != 1) return false;
 
@@ -16,14 +16,14 @@ bool handle_set_state(std::vector<std::string>& args, std::string& out)
     return true;
 }
 
-bool handle_get_state(std::vector<std::string>& args, std::string& out)
+bool handle_get_state(std::vector<std::string> &args, std::string &out)
 {
     if (!args.empty()) return false;
     out = get_led_state().state;
     return true;
 }
 
-bool handle_set_color(std::vector<std::string>& args, std::string& out)
+bool handle_set_color(std::vector<std::string> &args, std::string &out)
 {
     if (args.size() != 1) return false;
 
@@ -34,14 +34,14 @@ bool handle_set_color(std::vector<std::string>& args, std::string& out)
     return true;
 }
 
-bool handle_get_color(std::vector<std::string>& args, std::string& out)
+bool handle_get_color(std::vector<std::string> &args, std::string &out)
 {
     if (!args.empty()) return false;
     out = get_led_state().color;
     return true;
 }
 
-bool handle_set_rate(std::vector<std::string>& args, std::string& out)
+bool handle_set_rate(std::vector<std::string> &args, std::string &out)
 {
     if (args.size() != 1) return false;
 
@@ -52,7 +52,7 @@ bool handle_set_rate(std::vector<std::string>& args, std::string& out)
     return true;
 }
 
-bool handle_get_rate(std::vector<std::string>& args, std::string& out)
+bool handle_get_rate(std::vector<std::string> &args, std::string &out)
 {
     if (!args.empty()) return false;
 

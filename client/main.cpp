@@ -45,10 +45,18 @@ bool send_request(const std::string &req, std::string &resp)
         if (res < (int)sizeof(buf)) break;
     }
     fcntl(fd, F_SETFL, 0);
-
     close(fd);
 
-    return true;
+    if (!resp.empty() && resp.back() == '\n') resp.resize(resp.size() - 1);
+    if (resp.size() > 1 && resp[0] == 'O' && resp[1] == 'K' && (resp.size() == 2 || resp[2] == ' '))
+    {
+        resp.erase(0, resp.size() == 2 ? 2 : 3);
+        return true;
+    }
+
+    std::cout << "Failed" << std::endl;
+
+    return false;
 }
 
 bool handle_help(std::vector<std::string>& args)
@@ -61,31 +69,39 @@ bool handle_help(std::vector<std::string>& args)
     return true;
 }
 
-bool handle_state(std::vector<std::string>& args)
+bool common_handler(const std::string &type, std::vector<std::string>& args)
 {
     std::string out;
     if (args.empty())
     {
-        if (send_request("get-led-state", out))
+        if (send_request("get-led-" + type, out))
         {
-            std::cout << "Current led state is " << out << std::endl;
+            std::cout << "Current led " + type + " is " << out << std::endl;
         }
     }
     else
     {
-        send_request("set-led-state " + args[0], out);
+        if (send_request("set-led-" + type + " " + args[0], out))
+        {
+            std::cout << "Ok" << std::endl;
+        }
     }
     return true;
 }
 
+bool handle_state(std::vector<std::string>& args)
+{
+    return common_handler("state", args);
+}
+
 bool handle_color(std::vector<std::string>& args)
 {
-    return true;
+    return common_handler("color", args);
 }
 
 bool handle_rate(std::vector<std::string>& args)
 {
-    return true;
+    return common_handler("rate", args);
 }
 
 bool handle_exit(std::vector<std::string>& args)

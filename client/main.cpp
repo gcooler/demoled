@@ -1,66 +1,20 @@
-#include <errno.h>
-#include <fcntl.h>
+#include "server.h"
+
 #include <iostream>
 #include <map>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <sstream>
-#include <string>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <vector>
-
-sockaddr_in addr;
-
-bool send_request(const std::string &req, std::string &resp)
-{
-    int fd = socket(PF_INET, SOCK_STREAM, 0);
-    if (fd < 0)
-    {
-        std::cerr << "Failed to create socket, error code: " << errno << std::endl;
-        return false;
-    }
-
-    if (connect(fd, (sockaddr*)&addr, sizeof(addr)) < 0)
-    {
-        std::cerr << "Failed to connect to server, error code: " << errno << std::endl;
-        return false;
-    }
-
-    send(fd, req.data(), req.size(), 0);
-
-    resp.clear();
-    for (;;)
-    {
-        char buf[256];
-        int res = recv(fd, buf, sizeof(buf), 0);
-        if (resp.empty()) fcntl(fd, F_SETFL, O_NONBLOCK);
-        if (res > 0) resp.append(buf, res);
-        if (res < (int)sizeof(buf)) break;
-    }
-    fcntl(fd, F_SETFL, 0);
-    close(fd);
-
-    if (!resp.empty() && resp.back() == '\n') resp.resize(resp.size() - 1);
-    if (resp.size() > 1 && resp[0] == 'O' && resp[1] == 'K' && (resp.size() == 2 || resp[2] == ' '))
-    {
-        resp.erase(0, resp.size() == 2 ? 2 : 3);
-        return true;
-    }
-
-    std::cout << "Failed" << std::endl;
-
-    return false;
-}
 
 bool handle_help(std::vector<std::string>& args)
 {
     std::cout << "Available commmands:\n"
-        "\thelp\t\tView this help\n"
-        "\tstate\t\tGet led state from server\n"
-        "\tstate {on|off}\tSet led state\n"
-        ;
+        "\thelp\t\t\tShow this help\n"
+        "\tstate\t\t\tGet led state from the server\n"
+        "\tstate {on|off}\t\tSet led state\n"
+        "\tcolor\t\t\tGet led color from the server\n"
+        "\tcolor {red|green|blue}\tSet led color\n"
+        "\trate\t\t\tGet led rate from the server\n"
+        "\trate 0..5\t\tSet led rate\n";
     return true;
 }
 
@@ -133,17 +87,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    hostent *server = gethostbyname(argv[1]);
-    if (!server)
+    if (!server_init(argv[1], atoi(argv[2])))
     {
-        std::cerr << "Failed to find host " << argv[1] << ", error code: " << h_errno << std::endl;
         return 1;
     }
-
-    memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(atoi(argv[2]));
-    addr.sin_addr = *(in_addr *)server->h_addr;
 
     for (;;)
     {

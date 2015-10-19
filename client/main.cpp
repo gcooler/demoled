@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <map>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sstream>
 #include <string>
@@ -10,7 +11,7 @@
 #include <unistd.h>
 #include <vector>
 
-#define SERVER_PORT 9999
+sockaddr_in addr;
 
 bool send_request(const std::string &req, std::string &resp)
 {
@@ -20,12 +21,6 @@ bool send_request(const std::string &req, std::string &resp)
         std::cerr << "Failed to create socket, error code: " << errno << std::endl;
         return false;
     }
-
-    sockaddr_in addr;
-    memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(SERVER_PORT);
-    addr.sin_addr.s_addr = INADDR_ANY;
 
     if (connect(fd, (sockaddr*)&addr, sizeof(addr)) < 0)
     {
@@ -130,8 +125,26 @@ bool process_command(const std::string& cmd, std::vector<std::string>& args)
     return it->second(args);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 3)
+    {
+        std::cout << "Usage: " << argv[0] << " <host> <port>" << std::endl;
+        return 1;
+    }
+
+    hostent *server = gethostbyname(argv[1]);
+    if (!server)
+    {
+        std::cerr << "Failed to find host " << argv[1] << ", error code: " << h_errno << std::endl;
+        return 1;
+    }
+
+    memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(atoi(argv[2]));
+    addr.sin_addr = *(in_addr *)server->h_addr;
+
     for (;;)
     {
         std::cout << "Enter command: ";
